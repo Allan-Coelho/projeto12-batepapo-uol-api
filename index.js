@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import getMessages from "./modules/messages/get.js";
 import postParticipants from './modules/participants/post.js';
 import postMessages from './modules/messages/post.js';
+import getParticipants from './modules/participants/get.js'
 
 dotenv.config();
 const server = express();
@@ -14,6 +15,7 @@ server.use(express.json());
 await mongoClient.connect();
 const database = mongoClient.db('uol_chat');
 
+server.get('/participants', getParticipants);
 server.post('/participants', postParticipants);
 server.get('/messages', getMessages);
 server.post('/messages', postMessages);
@@ -22,10 +24,7 @@ server.post('/status', (request, response) => {
     response.send();
 });
 
-server.get('/participants', (request, response) => {
-    const data = request.body;
-    response.send();
-});
+
 
 
 
