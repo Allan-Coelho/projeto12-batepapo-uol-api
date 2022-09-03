@@ -7,7 +7,7 @@ async function postParticipants(request, response) {
     const schema = Joi.string().min(1);
     const { error, value } = schema.validate(name);
     const usernameAlreadyUsed = await database.collection('participants').findOne({ name: name });
-    const now = Date.now();
+    const now = dayjs();
 
     if (error !== undefined) {
         response.status(422).send(error.details.message);
@@ -18,7 +18,7 @@ async function postParticipants(request, response) {
     }
 
     database.collection('participants').insertOne({ name: value, lastStatus: now });
-    database.collection('messages').insertOne({ from: value, to: 'Todos', text: 'entra na sala...', type: 'status', time: dayjs(now).format('HH:MM:SS') })
+    database.collection('messages').insertOne({ from: value, to: 'Todos', text: 'entra na sala...', type: 'status', time: now.format('HH:mm:ss') })
 
     response.sendStatus(201);
 }

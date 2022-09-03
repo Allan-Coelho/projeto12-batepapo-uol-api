@@ -3,6 +3,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import getMessages from "./modules/messages/get.js";
 import postParticipants from './modules/participants/post.js';
+import postMessages from './modules/messages/post.js';
 
 dotenv.config();
 const server = express();
@@ -15,12 +16,7 @@ const database = mongoClient.db('uol_chat');
 
 server.post('/participants', postParticipants);
 server.get('/messages', getMessages);
-
-server.post('/messages', (request, response) => {
-    const data = request.body;
-
-    response.send();
-});
+server.post('/messages', postMessages);
 server.post('/status', (request, response) => {
     const data = request.body;
     response.send();
