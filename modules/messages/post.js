@@ -7,7 +7,8 @@ async function postMessages(request, response) {
     try {
         const now = dayjs();
         const data = request.body;
-        const usernameSender = await database.collection('participants').findOne({ name: request.headers.user });
+        const user = stripHtml(request.headers.user).result.trim();
+        const usernameSender = await database.collection('participants').findOne({ name: user });
         const schema = Joi.object({
             to: Joi.string().min(1),
             text: Joi.string().min(1),
@@ -34,12 +35,12 @@ async function postMessages(request, response) {
             return
         }
 
-        if (request.headers.from === data.to) {
+        if (user === data.to) {
             response.status(404).send("The sender and receipt can't be equal.");
             return
         }
 
-        value.from = stripHtml(request.headers.user).result.trim();
+        value.from = user;
         value.time = now.format('HH:mm:ss');
         value.text = stripHtml(value.text).result.trim();
         value.to = stripHtml(value.to).result.trim();
