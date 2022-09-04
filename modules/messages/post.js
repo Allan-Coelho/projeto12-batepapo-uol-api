@@ -7,7 +7,6 @@ async function postMessages(request, response) {
         const now = dayjs();
         const data = request.body;
         const usernameSender = await database.collection('participants').findOne({ name: request.headers.from });
-        const usernameRecipient = await database.collection('participants').findOne({ name: data.to });
         const schema = Joi.object({
             to: Joi.string().min(1),
             text: Joi.string().min(1),
@@ -15,20 +14,30 @@ async function postMessages(request, response) {
         });
         const { error, value } = schema.validate(data);
 
-        if (error !== undefined) {
-            response.status(422).send("Invalid body values.");
+        if (data.to !== 'Todos') {
+            const usernameRecipient = await database.collection('participants').findOne({ name: data.to });
+
+            if (usernameRecipient === null) {
+                response.status(404).send("The recipient does not exist.");
+                return
+            }
         }
 
-        if (usernameRecipient === null) {
-            response.status(404).send("The recipient does not exist.");
+        if (error !== undefined) {
+            response.status(422).send("Invalid body values.");
+            return
         }
+
+
 
         if (usernameSender === null) {
             response.status(404).send("The sender does not exist.");
+            return
         }
 
         if (request.headers.from === data.to) {
             response.status(404).send("The sender and receipt can't be equal.");
+            return
         }
 
         value.from = request.headers.from;
