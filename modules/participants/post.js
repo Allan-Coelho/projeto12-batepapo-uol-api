@@ -1,26 +1,39 @@
 import { database } from "../../index.js";
 import Joi from "joi";
-import dayjs from 'dayjs'
+import dayjs from 'dayjs';
+import { stripHtml } from "string-strip-html";
 
 async function postParticipants(request, response) {
-    const { name } = request.body;
-    const schema = Joi.string().min(1);
-    const { error, value } = schema.validate(name);
-    const usernameAlreadyUsed = await database.collection('participants').findOne({ name: name });
-    const now = dayjs();
+    try {
+        const { name } = request.body;
+        const participants = database.collection('participants');
+        const messages = database.collection('messages');
+        const schema = Joi.string().min(1);
+        let { error, value } = schema.validate(name);
+        const usernameAlreadyUsed = await participants.findOne({ name: name });
+        const now = Date.now();
 
-    if (error !== undefined) {
-        response.status(422).send(error.details.message);
+        if (error !== undefined) {
+            response.status(422).send(error.details.message);
+            return
+        }
+
+        if (usernameAlreadyUsed !== null) {
+            response.sendStatus(409);
+            return
+        }
+
+        value = stripHtml(value).result.trim();
+
+        await participants.insertOne({ name: value, lastStatus: now });
+        await messages.insertOne({ from: value, to: 'Todos', text: 'entra na sala...', type: 'status', time: dayjs(now).format('HH:mm:ss') });
+
+        response.sendStatus(201);
     }
-
-    if (usernameAlreadyUsed !== null) {
-        response.sendStatus(409);
+    catch (error) {
+        console.log(error);
+        response.sendStatus(500);
     }
-
-    database.collection('participants').insertOne({ name: value, lastStatus: now });
-    database.collection('messages').insertOne({ from: value, to: 'Todos', text: 'entra na sala...', type: 'status', time: now.format('HH:mm:ss') })
-
-    response.sendStatus(201);
 }
 
 export default postParticipants;

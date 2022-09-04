@@ -1,8 +1,10 @@
 import { database } from "../../index.js";
 
-async function getParticipants(request, response) {
+async function putMessages(request, response) {
     try {
         const data = request.body;
+        const messageID = request.params.messageID;
+        const user = request.headers.user;
         const allParticipants = await database.collection("participants").find({}).toArray();
 
         response.send(allParticipants);
@@ -13,4 +15,4 @@ async function getParticipants(request, response) {
     }
 }
 
-export default getParticipants;
+export default putMessages;
